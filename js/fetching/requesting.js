@@ -3,6 +3,10 @@ const formToJSON = (form) => {
   return Object.fromEntries(new FormData(form));
 };
 
+const handleErrors = (response) => {
+  return { error: { code: response.status, detail: response.statusText } };
+};
+
 const makeRequest = async (method, url, body, extraHeaders = {}) => {
   // Generic function to make an asynchronous request
   try {
