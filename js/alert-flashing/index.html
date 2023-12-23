@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert</title>
+</head>
+
+<body>
+  <button id="alert-flash-trigger">Flash</button>
+  <!-- Template -->
+  <template id="flashed-msg-template">
+    <div class="alert" id="message-box">
+      <span class="msg-icon">Icon</span>
+      <span class="msg">Alert: This is an alert</span>
+      <span class="close-btn">&times;</span>
+    </div>
+  </template>
+</body>
+
+<script>
+  function randomHex(size) {
+    // Create a random hex string given a specific size
+    return [...Array(size)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join("");
+  }
+
+  function getTemplate(id, children = true) {
+    // Find a template in the DOM given its id
+    const tmp = document.getElementById(id);
+    return tmp.content.cloneNode(children);
+  }
+
+  function createFlashedMessage(templateId, alertClass, messageContent) {
+    // Create a new flashed message and append it to the DOM
+    const tmpFlashedMsg = getTemplate(templateId);
+    document.body.append(tmpFlashedMsg); // Write to DOM
+
+    const flashedMsg = document.getElementById("message-box");
+    flashedMsg.id = `${flashedMsg.id}-${randomHex(8)}`; // Make the ID unique
+    const message = flashedMsg.querySelector("span.msg");
+    const icon = flashedMsg.querySelector("span.msg-icon");
+    const closeBtn = flashedMsg.querySelector(".close-btn");
+
+    message.textContent = messageContent;
+    closeBtn.addEventListener("click", () => {
+      flashedMsg.remove();
+    });
+
+    return flashedMsg;
+  }
+
+  const msgFlasher = document.getElementById("alert-flash-trigger");
+
+  msgFlasher.addEventListener("click", (e) => {
+    const flashedMsg = createFlashedMessage(
+      'flashed-msg-template', 'danger', 'Alert: This is an alert')
+  })
+</script>
+
+</html>
