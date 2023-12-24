@@ -75,8 +75,8 @@ def validate(body: BaseModel = None, query: BaseModel = None, path: BaseModel = 
             # Validate the query parameters
             request.query_params = validate_query_params(request.args.to_dict(), query)
 
-            # Validate the request body
-            request.body = {}  # Argument could be made that this should be None
+            # Validate the request body - may need some more attention
+            request.body = None
             if has_body(request):
                 request.body = validate_body(request.get_json(), body)
             return f(*args, **kwargs)
