@@ -1,10 +1,14 @@
 from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
 from flask import Flask, Response
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
 DataT = TypeVar("DataT")
+
+
+def get_now(fmt: str = "%Y-%m-%dT%H:%M:%S") -> str:
+    return datetime.now(timezone.utc).strftime(fmt)
 
 
 class CustomFlask(Flask):
@@ -26,7 +30,7 @@ class CustomResponse(Response):
 
 
 class CustomResponseModel(GenericModel, Generic[DataT]):
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=get_now)
     status: int = 200  # Could be more specific
     status_message: str = Field("OK", alias="statusMessage")
     data: DataT | None = None
@@ -44,6 +48,7 @@ app.response_class = CustomResponse
 
 @app.route("/")
 def index():
+    # Old approach doesn't break
     return {"status": "ok"}
 
 
