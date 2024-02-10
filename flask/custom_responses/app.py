@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
 from flask import Flask, Response
 from datetime import datetime
-from typing import Generic, TypeVar, Optional
+from typing import Generic, TypeVar
 
 # Define a generic type variable for data
 DataT = TypeVar("DataT")
@@ -33,7 +33,7 @@ class CustomResponseModel(GenericModel, Generic[DataT]):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     status: int = 200  # Could be more specific
     status_message: str = "OK"
-    data: Optional[DataT] = None
+    data: DataT | None = None
 
 
 # Example Pydantic model
