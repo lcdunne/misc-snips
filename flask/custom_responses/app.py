@@ -26,6 +26,7 @@ class CustomFlask(Flask):
 
 
 class CustomResponse(Response):
+    # Change the default response type to JSON
     default_mimetype = "application/json"
 
 
