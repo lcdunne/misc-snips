@@ -4,39 +4,34 @@ from flask import Flask, Response
 from datetime import datetime
 from typing import Generic, TypeVar
 
-# Define a generic type variable for data
 DataT = TypeVar("DataT")
 
 
 class CustomFlask(Flask):
+    # The recommended approach.
+    # See https://github.com/pallets/flask/issues/2736#issuecomment-385037987
     def make_response(self, rv):
-        # Override this to avoid always calling .json or .dict on the model, and to extract status
-        # Convert any Pydantic model to JSON response
         if isinstance(rv, BaseModel):
             rv = rv.dict(), getattr(rv, "status", None)
         elif isinstance(rv, tuple) and isinstance(rv[0], BaseModel):
             model = rv[0].dict()
             if not isinstance(rv[1], (str, int)) and len(rv) == 2:
-                # If a tuple of (response, header) was given, extract the status from response
-                #   otherwise just use what was given
                 rv = (model, model.get("status"), rv[1])
             rv = (model, *rv[1:])
         return super().make_response(rv)
 
 
 class CustomResponse(Response):
-    # Set the default response to be JSON instead of text/html
     default_mimetype = "application/json"
 
 
 class CustomResponseModel(GenericModel, Generic[DataT]):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     status: int = 200  # Could be more specific
-    status_message: str = "OK"
+    status_message: str = Field("OK", alias="statusMessage")
     data: DataT | None = None
 
 
-# Example Pydantic model
 class UserData(BaseModel):
     id: int
     name: str
