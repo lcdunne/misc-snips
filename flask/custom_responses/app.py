@@ -1,8 +1,9 @@
+import uuid
 from datetime import datetime, timezone
-from typing import Generic, TypeVar
+from typing import Callable, Generic, TypeVar
 
 from flask import Flask, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 DataT = TypeVar("DataT")
 
@@ -27,10 +28,20 @@ class CustomResponseModel(BaseModel, Generic[DataT]):
         return self.model_dump(mode="json", *args, **kwargs)
 
 
+class Category(BaseModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    fun: Callable = lambda x: print(x)
+
+    @field_serializer("fun")
+    def serialize_fun(self, fun: Callable):
+        return f"{fun.__name__}" if hasattr(fun, "__name__") else "lambda"
+
+
 class UserData(BaseModel):
     id: int
     name: str
     email: str
+    category: Category
 
 
 app = Flask(__name__)
@@ -45,15 +56,16 @@ def index():
 
 @app.route("/user")
 def user():
-    user_data = UserData(id=1, name="Bob", email="bob@example.com")
+    category = Category()
+    user_data = UserData(id=1, name="Bob", email="bob@example.com", category=category)
     return CustomResponseModel[UserData](data=user_data, status=201).dump(), 201
 
 
 @app.route("/users")
 def users():
     users_data = [
-        UserData(id=1, name="John Doe", email="john@example.com"),
-        UserData(id=2, name="Jane Doe", email="jane@example.com"),
+        UserData(id=1, name="John Doe", email="john@example.com", category=Category()),
+        UserData(id=2, name="Jane Doe", email="jane@example.com", category=Category()),
     ]
     return CustomResponseModel[list[UserData]](data=users_data).dump()
 
