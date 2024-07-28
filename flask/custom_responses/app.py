@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
 from typing import Generic, TypeVar
 
-from pydantic import BaseModel, Field
-
 from flask import Flask, Response
+from pydantic import BaseModel, Field
 
 DataT = TypeVar("DataT")
 
@@ -20,8 +19,12 @@ class CustomResponse(Response):
 class CustomResponseModel(BaseModel, Generic[DataT]):
     timestamp: datetime = Field(default_factory=get_now)
     status: int = 200  # Could be more specific
-    status_message: str = Field("OK", alias="statusMessage")
+    status_message: str | None = Field(default="OK", alias="statusMessage")
     data: DataT | None = None
+
+    def dump(self, *args, **kwargs):
+        """Custom model dump."""
+        return self.model_dump(mode="json", *args, **kwargs)
 
 
 class UserData(BaseModel):
@@ -43,7 +46,7 @@ def index():
 @app.route("/user")
 def user():
     user_data = UserData(id=1, name="Bob", email="bob@example.com")
-    return CustomResponseModel[UserData](data=user_data, status=201).model_dump(), 201
+    return CustomResponseModel[UserData](data=user_data, status=201).dump(), 201
 
 
 @app.route("/users")
@@ -52,7 +55,7 @@ def users():
         UserData(id=1, name="John Doe", email="john@example.com"),
         UserData(id=2, name="Jane Doe", email="jane@example.com"),
     ]
-    return CustomResponseModel[list[UserData]](data=users_data).model_dump()
+    return CustomResponseModel[list[UserData]](data=users_data).dump()
 
 
 if __name__ == "__main__":
